@@ -16,8 +16,8 @@ pipeline {
         NEXUS_PORT = '8081'
         NEXUS_GRP_REPO = 'vpro-maven-group'
         NEXUS_LOGIN = 'nexus'
-        SONARSERVER = 'sonarserver'
         SONARSCANNER = 'sonarscanner'
+        SONARSERVER = 'sonarserver'
     }
 	
     stages{
@@ -57,14 +57,14 @@ pipeline {
             }
         }
 
-        stage('CODE ANALYSIS with SONARQUBE') {
+        stage('Code Analysis With SonarQube') {
           
 		  environment {
-             scannerHome = tool '${SONARSCANNER}'
+             scannerHome = tool "${SONARSCANNER}"
           }
 
           steps {
-            withSonarQubeEnv('${SONARSERVER}') {
+            withSonarQubeEnv("${SONARSERVER}") {
                sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
                    -Dsonar.projectName=vprofile-repo \
                    -Dsonar.projectVersion=1.0 \
