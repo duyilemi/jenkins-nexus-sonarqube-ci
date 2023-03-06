@@ -23,6 +23,9 @@ pipeline {
         NEXUS_LOGIN = 'nexus'
         SONARSCANNER = 'sonarscanner'
         SONARSERVER = 'sonarserver'
+        registryCredential = 'ecr:us-east-1:awscreds'
+        appRegistry = '500925422162.dkr.ecr.us-east-1.amazonaws.com/vprofileappimg'
+        vprofileRegistry = 'https://500925422162.dkr.ecr.us-east-1.amazonaws.com'
     }
 	
     stages{
@@ -44,12 +47,6 @@ pipeline {
                 sh 'mvn -s settings.xml test'
             }
         }
-
-	// stage('INTEGRATION TEST'){
-    //         steps {
-    //             sh 'mvn verify -DskipUnitTests'
-    //         }
-    //     }
 		
         stage ('Code Analysis With Checkstyle'){
             steps {
@@ -109,6 +106,25 @@ pipeline {
              type: 'war']
         ]
      )
+            }
+        }
+
+        stage('Build App Image') {
+            steps {
+                scripts {
+                    dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", "./Docker-files/app/multistage/" )
+                }
+            }
+        }
+
+        stage('Upload App Image') {
+            steps {
+                scripts {
+                   docker.withRegistry( vprofileRegistry, registryCredential ) {
+                    dockerImage.push("$BUILD_NUMBER")
+                    dockerImage.push('latest')
+                   }
+                }
             }
         }
 
