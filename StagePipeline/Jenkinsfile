@@ -26,6 +26,8 @@ pipeline {
         registryCredential = 'ecr:us-east-1:awscreds'
         appRegistry = '500925422162.dkr.ecr.us-east-1.amazonaws.com/vprofileappimg'
         vprofileRegistry = 'https://500925422162.dkr.ecr.us-east-1.amazonaws.com'
+        // cluster = 'vprostaging'
+        // service = 'vproappprodsvc'
     }
 	
     stages{
@@ -99,18 +101,20 @@ pipeline {
                     version: "${env.BUILD_ID}:${BUILD_TIMESTAMP}",
                     repository: "${RELEASE_REPO}",
                     credentialsId: "${NEXUS_LOGIN}",
-             artifacts: [
-                [artifactId: 'vproapp',
-             classifier: '',
-             file: 'target/vprofile-v2.war',
-             type: 'war']])
+                    artifacts: [
+                        [artifactId: 'vproapp',
+                        classifier: '',
+                        file: 'target/vprofile-v2.war',
+                        type: 'war']
+                    ]
+                )
             }
         }
 
         stage('Build App Image') {
             steps {
                 script {
-                    dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", "./Docker-files/app/multistage/" )
+                    dockerImage = docker.build( appRegistry + ":$BUILD_NUMBER", "./Docker-files/app/multistage/")
                 }
             }
         }
@@ -118,13 +122,21 @@ pipeline {
         stage('Upload App Image') {
             steps {
                 script {
-                   docker.withRegistry( vprofileRegistry, registryCredential ) {
+                   docker.withRegistry( vprofileRegistry, registryCredential) {
                     dockerImage.push("$BUILD_NUMBER")
                     dockerImage.push('latest')
                    }
                 }
             }
         }
+
+        // stage('Deploy to ECS staging') {
+        //     steps {
+        //         withAWS(credentials: 'awscreds', region: 'us-east-1') {
+        //             sh 'aws ecs update-service --cluster ${cluster} --service ${service} --force-new-deployment'
+        //         }
+        //     }
+        // }
 
     }
     
