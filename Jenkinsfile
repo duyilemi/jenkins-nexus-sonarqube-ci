@@ -123,7 +123,7 @@ pipeline {
                     disableHostKeyChecking : true,
                     extraVars : [
                         USER: 'admin',
-                        PASS: "${NEXUSPS}"
+                        PASS: "${NEXUSPS}",
                         nexusip: '172.31.29.250',
                         reponame: 'vprofile-release',
                         groupid: 'QA',
