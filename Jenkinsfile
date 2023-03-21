@@ -118,7 +118,7 @@ pipeline {
                     inventory : 'ansible/stage.inventory',
                     playbook : 'ansible/site.yaml',
                     installation : 'ansible',
-                    colorized : true
+                    colorized : true,
                     credentialsId : 'applogin',
                     disableHostKeyChecking : true,
                     extraVars : [
