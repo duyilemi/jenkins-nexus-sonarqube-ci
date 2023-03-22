@@ -23,6 +23,11 @@ pipeline {
         NEXUS_LOGIN = 'nexus'
         SONARSCANNER = 'sonarscanner'
         SONARSERVER = 'sonarserver'
+        ARTIFACT_NAME = "vprofile-v${BUILD_ID}.war"
+        AWS_S3_BUCKET = 'beanstalkproject'
+        AWS_EB_APP_NAME = 'cicd-beanstalk'
+        AWS_EB_ENVIRONMENT = 'Cicdbeanstalk-env'
+        AWS_EB_APP_VERSION = "${BUILD_ID}"
     }
 	
     stages{
@@ -106,13 +111,23 @@ pipeline {
                 [artifactId: 'vproapp',
              classifier: '',
              file: 'target/vprofile-v2.war',
-             type: 'war']
-        ]
-     )
+             type: 'war']])
+            }
+        }
+
+        stage("Deploy to Beanstalk-Staging Env") {
+            steps {
+
+                withAWS(credentials: 'awsbeans', region: 'us-east-1') {
+                    sh 'aws s3 cp ./target/vprofile-v2.war s3://$AWS_S3_BUCKET/$ARTIFACT_NAME'
+                    sh 'aws elasticbeanstalk create-application-version --application-name $AWS_EB_APP_NAME --version-label $AWS_EB_APP_VERSION --source-bundle S3Bucket=$AWS_S3_BUCKET, S3Key=$ARTIFACT_NAME'
+                    sh 'aws elasticbeanstalk update-environment --application-name $AWS_EB_APP_NAME --environment-name $AWS_EB_ENVIRONMENT --version-label $AWS_EB_APP_VERSION'
+                }
             }
         }
 
     }
+
     
     // post {
     //     always {
